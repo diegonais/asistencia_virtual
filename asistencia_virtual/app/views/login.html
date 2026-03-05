@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login - Asistencia Virtual</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <div class="box">
+    <h2>Asistencia Virtual</h2>
+
+    <?php if ($error !== ''): ?>
+      <div class="err"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+
+    <form method="post" autocomplete="off">
+      <label>Email</label>
+      <input name="email" type="email" value="<?= htmlspecialchars($emailValue) ?>" required>
+
+      <label>Password</label>
+      <input name="password" type="password" required>
+
+      <button type="submit">Ingresar</button>
+    </form>
+
+    <div class="hint">
+      Demo:<br>
+      Admin: admin@colegio.com / admin123<br>
+      Profesor: prof1@colegio.com / prof123
+    </div>
+  </div>
+</body>
+</html>
+

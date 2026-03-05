@@ -1,28 +1,37 @@
 services:
   db:
-    image: mysql:8.0
+    image: postgres:16
     container_name: asistencia_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: asistencia_virtual
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
       - ./asistencia_virtual/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     ports:
-      - "3306:3306"
+      - "${DB_PORT}:5432"
 
   web:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: asistencia_web
+    restart: always
     depends_on:
       - db
+    environment:
+      TIMEZONE: ${TIMEZONE}
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./asistencia_virtual/app:/var/www/html
     ports:
-      - "8080:80"
+      - "${APP_PORT}:80"
 
 volumes:
   db_data:

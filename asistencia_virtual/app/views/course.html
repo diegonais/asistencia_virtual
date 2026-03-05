@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Curso</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/course.css">
+</head>
+<body>
+  <div class="top">
+    <div><b><?= htmlspecialchars($course['nombre']) ?></b> - <span class="muted"><?= htmlspecialchars($course['profesor']) ?></span></div>
+    <div class="actions">
+      <a class="btn" href="/dashboard.php">Volver</a>
+      <a class="btn" href="/logout.php">Salir</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <h3>Asistencia</h3>
+      <form method="get" class="date-form">
+        <input type="hidden" name="id" value="<?= (int)$courseId ?>">
+        <label class="muted">Fecha (no futura):</label>
+        <input type="date" name="fecha" value="<?= htmlspecialchars($fecha) ?>" max="<?= htmlspecialchars($today) ?>">
+        <button type="submit" class="btn">Ver</button>
+      </form>
+
+      <p class="muted">Marca el estado y guarda. Si ya existe asistencia para esa fecha, se actualiza.</p>
+
+      <form method="post" action="/mark_attendance.php">
+        <input type="hidden" name="curso_id" value="<?= (int)$courseId ?>">
+        <input type="hidden" name="fecha" value="<?= htmlspecialchars($fecha) ?>">
+
+        <table>
+          <thead>
+            <tr>
+              <th>Estudiante</th>
+              <th>Email</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+          <?php foreach ($students as $s): ?>
+            <?php $sid = (int)$s['id']; $estado = $attMap[$sid] ?? 'PRESENTE'; ?>
+            <tr>
+              <td><?= htmlspecialchars($s['nombre']) ?></td>
+              <td class="muted"><?= htmlspecialchars($s['email']) ?></td>
+              <td>
+                <select name="estado[<?= $sid ?>]">
+                  <?php
+                    $opts = ['PRESENTE', 'AUSENTE', 'TARDE', 'JUSTIFICADO'];
+                    foreach ($opts as $op) {
+                        $sel = ($op === $estado) ? 'selected' : '';
+                        echo "<option value=\"$op\" $sel>$op</option>";
+                    }
+                  ?>
+                </select>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+          <?php if (count($students) === 0): ?>
+            <tr><td colspan="3" class="muted">No hay estudiantes matriculados.</td></tr>
+          <?php endif; ?>
+          </tbody>
+        </table>
+
+        <div class="actions space-top">
+          <button type="submit" class="btn">Guardar asistencia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

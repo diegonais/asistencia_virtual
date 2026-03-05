@@ -1,0 +1,18 @@
+select,
+input[type="date"] {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.date-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.space-top {
+  margin-top: 12px;
+}

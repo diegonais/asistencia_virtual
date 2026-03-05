@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <div class="top">
+    <div><b>Asistencia Virtual</b></div>
+    <div class="actions">
+      <?= htmlspecialchars($u['nombre']) ?> (<?= htmlspecialchars($u['rol']) ?>)
+      <a class="btn" href="/logout.php">Salir</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <h3>Cursos</h3>
+      <p class="muted">Selecciona un curso para marcar o consultar asistencia.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Curso</th>
+            <th>Profesor</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($cursos as $c): ?>
+            <tr>
+              <td><?= htmlspecialchars($c['nombre']) ?></td>
+              <td><?= htmlspecialchars($c['profesor']) ?></td>
+              <td><a class="btn" href="/course.php?id=<?= (int)$c['id'] ?>">Abrir</a></td>
+            </tr>
+          <?php endforeach; ?>
+          <?php if (count($cursos) === 0): ?>
+            <tr><td colspan="3" class="muted">No hay cursos para mostrar.</td></tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

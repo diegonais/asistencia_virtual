@@ -16,7 +16,7 @@ $estados = $_POST['estado'] ?? [];
 
 if ($cursoId <= 0 || $fecha === '' || !is_array($estados)) {
     http_response_code(400);
-    die('Datos inválidos.');
+    die('Datos invalidos.');
 }
 
 $today = date('Y-m-d');
@@ -25,65 +25,61 @@ if ($fecha > $today) {
     die('No se permite marcar asistencia en fechas futuras.');
 }
 
-$allowed = ['PRESENTE','AUSENTE','TARDE','JUSTIFICADO'];
+$allowed = ['PRESENTE', 'AUSENTE', 'TARDE', 'JUSTIFICADO'];
 
-$mysqli = db();
+$pdo = db();
 
-// validar acceso curso
-$sqlCourse = "SELECT id, profesor_id FROM cursos WHERE id = ? LIMIT 1";
-$stmt = $mysqli->prepare($sqlCourse);
-$stmt->bind_param('i', $cursoId);
-$stmt->execute();
-$course = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+// Validar acceso al curso.
+$sqlCourse = 'SELECT id, profesor_id FROM cursos WHERE id = ? LIMIT 1';
+$stmt = $pdo->prepare($sqlCourse);
+$stmt->execute([$cursoId]);
+$course = $stmt->fetch();
 
 if (!$course) {
-    $mysqli->close();
     http_response_code(404);
     die('Curso no encontrado.');
 }
 if ($u['rol'] === 'profesor' && (int)$course['profesor_id'] !== (int)$u['id']) {
-    $mysqli->close();
     http_response_code(403);
     die('No tienes acceso a este curso.');
 }
 
-// upsert (si existe, actualiza)
+// Upsert en Postgres.
 $sqlUpsert = "
   INSERT INTO asistencias (curso_id, estudiante_id, fecha, estado, marcado_por)
   VALUES (?, ?, ?, ?, ?)
-  ON DUPLICATE KEY UPDATE
-    estado = VALUES(estado),
-    marcado_por = VALUES(marcado_por)
+  ON CONFLICT (curso_id, estudiante_id, fecha)
+  DO UPDATE SET
+    estado = EXCLUDED.estado,
+    marcado_por = EXCLUDED.marcado_por
 ";
-$stmt = $mysqli->prepare($sqlUpsert);
+$stmt = $pdo->prepare($sqlUpsert);
 
-$mysqli->begin_transaction();
+$pdo->beginTransaction();
 
 try {
     foreach ($estados as $estudianteIdStr => $estado) {
         $estudianteId = (int)$estudianteIdStr;
         $estado = (string)$estado;
 
-        if ($estudianteId <= 0) continue;
-        if (!in_array($estado, $allowed, true)) continue;
+        if ($estudianteId <= 0) {
+            continue;
+        }
+        if (!in_array($estado, $allowed, true)) {
+            continue;
+        }
 
-        // (Opcional) podrías validar que el estudiante esté matriculado en ese curso
-        $stmt->bind_param('iissi', $cursoId, $estudianteId, $fecha, $estado, $u['id']);
-        $stmt->execute();
+        $stmt->execute([$cursoId, $estudianteId, $fecha, $estado, (int)$u['id']]);
     }
 
-    $mysqli->commit();
+    $pdo->commit();
 } catch (Throwable $e) {
-    $mysqli->rollback();
-    $stmt->close();
-    $mysqli->close();
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(500);
-    die("Error guardando asistencia: " . htmlspecialchars($e->getMessage()));
+    die('Error guardando asistencia: ' . htmlspecialchars($e->getMessage()));
 }
-
-$stmt->close();
-$mysqli->close();
 
 header('Location: /course.php?id=' . $cursoId . '&fecha=' . urlencode($fecha));
 exit;

@@ -2,22 +2,25 @@ services:
   db:
     image: mysql:8.0
     container_name: asistencia_db
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: asistencia_virtual
     volumes:
       - db_data:/var/lib/mysql
-      - ./db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./asistencia_virtual/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     ports:
       - "3306:3306"
 
   web:
-    image: php:8.2-apache
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: asistencia_web
     depends_on:
       - db
     volumes:
-      - ./app:/var/www/html
+      - ./asistencia_virtual/app:/var/www/html
     ports:
       - "8080:80"
 
